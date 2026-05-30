@@ -13,11 +13,11 @@ public class MainActivity extends BridgeActivity {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        getWindow().getDecorView().setBackgroundColor(Color.parseColor("#0a0e1a"));
-        getWindow().setStatusBarColor(Color.parseColor("#0a0e1a"));
         registerPlugin(AppSettingsPlugin.class);
         clearHttpCacheOnUpdate();
         super.onCreate(savedInstanceState);
+        // Imposta dopo super.onCreate() così sovrascrive il tema di sistema
+        getWindow().setStatusBarColor(Color.parseColor("#0a0e1a"));
         PriceCheckWorker.schedule(this);
     }
 
