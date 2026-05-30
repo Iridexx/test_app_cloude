@@ -1,9 +1,14 @@
 package com.cryptowatch.app;
 
+import android.app.DownloadManager;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.net.Uri;
+import android.os.Build;
+import android.os.Environment;
 import android.provider.Settings;
-import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
@@ -21,11 +26,57 @@ public class AppSettingsPlugin extends Plugin {
     }
 
     @PluginMethod
+    public void downloadApk(PluginCall call) {
+        String url = call.getString("url");
+        if (url == null) { call.reject("url mancante"); return; }
+
+        DownloadManager dm = (DownloadManager) getContext()
+            .getSystemService(Context.DOWNLOAD_SERVICE);
+
+        DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
+        request.setTitle("CryptoWatch");
+        request.setDescription("Download aggiornamento in corso...");
+        request.setNotificationVisibility(
+            DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED
+        );
+        request.setDestinationInExternalPublicDir(
+            Environment.DIRECTORY_DOWNLOADS, "CryptoWatch-update.apk"
+        );
+        request.setMimeType("application/vnd.android.package-archive");
+
+        long downloadId = dm.enqueue(request);
+
+        BroadcastReceiver receiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context ctx, Intent intent) {
+                long id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1);
+                if (id != downloadId) return;
+                ctx.unregisterReceiver(this);
+                Uri apkUri = dm.getUriForDownloadedFile(downloadId);
+                if (apkUri == null) return;
+                Intent install = new Intent(Intent.ACTION_VIEW);
+                install.setDataAndType(apkUri, "application/vnd.android.package-archive");
+                install.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                install.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                ctx.startActivity(install);
+            }
+        };
+
+        IntentFilter filter = new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            getContext().registerReceiver(receiver, filter, Context.RECEIVER_NOT_EXPORTED);
+        } else {
+            getContext().registerReceiver(receiver, filter);
+        }
+
+        call.resolve();
+    }
+
+    @PluginMethod
     public void openWithChooser(PluginCall call) {
         String url = call.getString("url");
         if (url == null) { call.reject("url mancante"); return; }
         String title = call.getString("title", "Apri con");
-
         Intent view = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
         Intent chooser = Intent.createChooser(view, title);
         chooser.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);

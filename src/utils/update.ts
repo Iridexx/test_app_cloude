@@ -1,6 +1,7 @@
 import { Capacitor, registerPlugin } from '@capacitor/core';
 
 interface AppSettingsPlugin {
+  downloadApk(options: { url: string }): Promise<void>;
   openWithChooser(options: { url: string; title?: string }): Promise<void>;
 }
 const AppSettings = registerPlugin<AppSettingsPlugin>('AppSettings');
@@ -95,7 +96,7 @@ export async function mergeToMain(branch: string, token: string): Promise<void> 
 
 export async function downloadAndInstall(url: string): Promise<void> {
   if (Capacitor.isNativePlatform()) {
-    await AppSettings.openWithChooser({ url, title: 'Scarica APK con' });
+    await AppSettings.downloadApk({ url });
   } else {
     window.open(url, '_blank');
   }
