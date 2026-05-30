@@ -5,7 +5,7 @@ import { useFavorites } from './hooks/useFavorites';
 import { useAlerts } from './hooks/useAlerts';
 import { getNotificationPermission, initNotifications } from './utils/notifications';
 import { isBatteryBannerDismissed } from './utils/energySaving';
-import { onDownloadComplete } from './utils/update';
+import { onDownloadComplete, triggerImmediateCheck } from './utils/update';
 import Navbar, { type Tab } from './components/Navbar';
 import CoinCard from './components/CoinCard';
 import AlertModal from './components/AlertModal';
@@ -31,6 +31,9 @@ export default function App() {
     const handleVisibility = () => {
       if (document.visibilityState === 'visible') {
         getNotificationPermission().then(setNotifPerm);
+      } else {
+        // App va in background: schedula un controllo prezzi immediato
+        triggerImmediateCheck();
       }
     };
     document.addEventListener('visibilitychange', handleVisibility);

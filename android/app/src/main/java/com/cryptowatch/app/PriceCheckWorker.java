@@ -10,7 +10,11 @@ import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.work.Constraints;
+import androidx.work.ExistingPeriodicWorkPolicy;
+import androidx.work.ExistingWorkPolicy;
 import androidx.work.NetworkType;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.OutOfQuotaPolicy;
 import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkManager;
 import androidx.work.Worker;
@@ -30,7 +34,8 @@ public class PriceCheckWorker extends Worker {
     private static final String KEY     = "alerts_json";
     private static final String CHANNEL = "price_alerts";
     private static final String TAG     = "PriceCheckWorker";
-    private static final String WORK_TAG = "price_check";
+    private static final String WORK_TAG      = "price_check";
+    private static final String WORK_IMMEDIATE = "price_check_immediate";
 
     public PriceCheckWorker(@NonNull Context context, @NonNull WorkerParameters p) {
         super(context, p);
@@ -45,9 +50,28 @@ public class PriceCheckWorker extends Worker {
             .setConstraints(constraints)
             .addTag(WORK_TAG)
             .build();
+        // UPDATE resetta il backoff di retry se il worker era in stato di errore
         WorkManager.getInstance(ctx).enqueueUniquePeriodicWork(
             WORK_TAG,
-            androidx.work.ExistingPeriodicWorkPolicy.KEEP,
+            ExistingPeriodicWorkPolicy.UPDATE,
+            request
+        );
+    }
+
+    // Controllo immediato una-tantum: parte appena c'è rete, sostituisce
+    // qualsiasi check immediato già in coda (REPLACE)
+    public static void scheduleImmediate(Context ctx) {
+        Constraints constraints = new Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build();
+        OneTimeWorkRequest request = new OneTimeWorkRequest.Builder(PriceCheckWorker.class)
+            .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+            .setConstraints(constraints)
+            .addTag(WORK_IMMEDIATE)
+            .build();
+        WorkManager.getInstance(ctx).enqueueUniqueWork(
+            WORK_IMMEDIATE,
+            ExistingWorkPolicy.REPLACE,
             request
         );
     }

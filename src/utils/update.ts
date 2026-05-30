@@ -5,6 +5,7 @@ interface AppSettingsPlugin {
   downloadApk(options: { url: string }): Promise<void>;
   openDownloads(): Promise<void>;
   syncAlerts(options: { json: string }): Promise<void>;
+  scheduleImmediateCheck(): Promise<void>;
   openWithChooser(options: { url: string; title?: string }): Promise<void>;
   addListener(event: 'downloadComplete', handler: (data: { status: string }) => void): Promise<PluginListenerHandle>;
 }
@@ -109,6 +110,11 @@ export async function downloadAndInstall(url: string): Promise<void> {
 export async function syncAlertsToNative(alerts: unknown[]): Promise<void> {
   if (!Capacitor.isNativePlatform()) return;
   try { await AppSettings.syncAlerts({ json: JSON.stringify(alerts) }); } catch { /* ignore */ }
+}
+
+export async function triggerImmediateCheck(): Promise<void> {
+  if (!Capacitor.isNativePlatform()) return;
+  try { await AppSettings.scheduleImmediateCheck(); } catch { /* ignore */ }
 }
 
 export async function openDownloadsFolder(): Promise<void> {
