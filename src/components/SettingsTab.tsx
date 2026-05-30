@@ -1,6 +1,6 @@
-import { useState, useEffect, type FC } from 'react';
+import { useState, type FC } from 'react';
 import { openNotificationSettings } from '../utils/notifications';
-import { checkForUpdates, downloadAndInstall, openDownloadsFolder, onDownloadComplete, getDevBuildInfo, mergeToMain, APK_PAGES_URL, type UpdateResult, type DevBuildInfo } from '../utils/update';
+import { checkForUpdates, downloadAndInstall, openDownloadsFolder, getDevBuildInfo, mergeToMain, APK_PAGES_URL, type UpdateResult, type DevBuildInfo } from '../utils/update';
 
 const INTERVALS = [
   { label: '30 sec', ms: 30_000 },
@@ -23,6 +23,8 @@ interface Props {
   onClearAlerts: () => void;
   notifPerm: NotificationPermission;
   onPermissionChange: (p: NotificationPermission) => void;
+  dlState: 'idle' | 'downloading' | 'done';
+  onDownloadStart: () => void;
 }
 
 const SettingsTab: FC<Props> = ({
@@ -33,6 +35,8 @@ const SettingsTab: FC<Props> = ({
   onClearFavorites,
   onClearAlerts,
   notifPerm,
+  dlState,
+  onDownloadStart,
 }) => {
   const [updateState, setUpdateState] = useState<UpdateState>('idle');
   const [updateInfo, setUpdateInfo] = useState<UpdateResult | null>(null);
@@ -45,12 +49,6 @@ const SettingsTab: FC<Props> = ({
   const [showToken, setShowToken] = useState(false);
   const [mergeState, setMergeState] = useState<'idle' | 'merging' | 'done' | 'error'>('idle');
   const [mergeError, setMergeError] = useState('');
-  const [dlState, setDlState] = useState<'idle' | 'downloading' | 'done'>('idle');
-
-  useEffect(() => {
-    const unsubscribe = onDownloadComplete(() => setDlState('done'));
-    return () => { unsubscribe.then(fn => fn()); };
-  }, []);
 
   const handleCheckUpdate = async () => {
     setUpdateState('checking');
@@ -104,7 +102,7 @@ const SettingsTab: FC<Props> = ({
   };
 
   const handleDownload = async (url: string) => {
-    setDlState('downloading');
+    onDownloadStart();
     await downloadAndInstall(url);
   };
 

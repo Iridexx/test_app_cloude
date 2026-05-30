@@ -4,6 +4,7 @@ import { useCryptoData } from './hooks/useCryptoData';
 import { useFavorites } from './hooks/useFavorites';
 import { useAlerts } from './hooks/useAlerts';
 import { getNotificationPermission, initNotifications } from './utils/notifications';
+import { onDownloadComplete } from './utils/update';
 import Navbar, { type Tab } from './components/Navbar';
 import CoinCard from './components/CoinCard';
 import AlertModal from './components/AlertModal';
@@ -18,6 +19,7 @@ export default function App() {
   const [search, setSearch] = useState('');
   const [selectedCoin, setSelectedCoin] = useState<Coin | null>(null);
   const [notifPerm, setNotifPerm] = useState<NotificationPermission>('default');
+  const [dlState, setDlState] = useState<'idle' | 'downloading' | 'done'>('idle');
 
   useEffect(() => {
     initNotifications();
@@ -29,7 +31,15 @@ export default function App() {
       }
     };
     document.addEventListener('visibilitychange', handleVisibility);
-    return () => document.removeEventListener('visibilitychange', handleVisibility);
+
+    // Listener download a livello App — persiste anche cambiando tab
+    let unsubDl: (() => void) | null = null;
+    onDownloadComplete(() => setDlState('done')).then((fn) => { unsubDl = fn; });
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibility);
+      unsubDl?.();
+    };
   }, []);
   const [refreshInterval, setRefreshInterval] = useState<number>(() => {
     return parseInt(localStorage.getItem(INTERVAL_KEY) || '30000', 10);
@@ -207,6 +217,8 @@ export default function App() {
               onClearAlerts={clearAlerts}
               notifPerm={notifPerm}
               onPermissionChange={setNotifPerm}
+              dlState={dlState}
+              onDownloadStart={() => setDlState('downloading')}
             />
           )}
         </div>
