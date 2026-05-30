@@ -1,4 +1,10 @@
-import { Capacitor } from '@capacitor/core';
+import { Capacitor, registerPlugin } from '@capacitor/core';
+
+interface AppSettingsPlugin {
+  openNotifications(): Promise<void>;
+}
+
+const AppSettings = registerPlugin<AppSettingsPlugin>('AppSettings');
 
 export async function requestNotificationPermission(): Promise<NotificationPermission> {
   if (!('Notification' in window)) return 'denied';
@@ -14,7 +20,9 @@ export function getNotificationPermission(): NotificationPermission {
 
 export function openNotificationSettings(): void {
   if (Capacitor.isNativePlatform()) {
-    window.open('app-settings:', '_system');
+    AppSettings.openNotifications().catch(() => {
+      window.open('app-settings:', '_system');
+    });
   }
 }
 
