@@ -46,23 +46,25 @@ export async function sendAlertNotification(params: {
   currentPrice: number;
 }): Promise<void> {
   if (Capacitor.isNativePlatform()) {
-    await LocalNotifications.schedule({
-      notifications: [{
-        id: Math.floor(Math.random() * 2_000_000),
-        channelId: 'price_alerts',
-        title: `🚨 ${params.coinName}`,
-        body: `Prezzo ${params.direction === 'above' ? 'sopra' : 'sotto'} $${params.threshold.toLocaleString()} · Attuale: $${params.currentPrice.toLocaleString()}`,
-        sound: 'default',
-        smallIcon: 'ic_launcher',
-      }],
-    });
+    try {
+      const perm = await LocalNotifications.checkPermissions();
+      if (perm.display !== 'granted') return;
+      await LocalNotifications.schedule({
+        notifications: [{
+          id: Math.floor(Math.random() * 2_000_000),
+          channelId: 'price_alerts',
+          title: `🚨 ${params.coinName}`,
+          body: `Prezzo ${params.direction === 'above' ? 'sopra' : 'sotto'} $${params.threshold.toLocaleString()} · Attuale: $${params.currentPrice.toLocaleString()}`,
+          sound: 'default',
+          smallIcon: 'ic_launcher',
+          schedule: { at: new Date(Date.now() + 100) },
+        }],
+      });
+    } catch {
+      // notifica fallita silenziosamente
+    }
     return;
   }
-  // fallback web via service worker
-  if (!('serviceWorker' in navigator)) return;
-  const reg = await navigator.serviceWorker.ready;
-  if (!reg.active) return;
-  reg.active.postMessage({ type: 'PRICE_ALERT', ...params });
 }
 
 export function openNotificationSettings(): void {
