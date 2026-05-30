@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import type { Coin, PriceAlert } from '../types';
+import type { Coin, PriceAlert, AlertDirection } from '../types';
 import { sendAlertNotification } from '../utils/notifications';
 import { playAlertBeep } from '../utils/audio';
 import { syncAlertsToNative } from '../utils/update';
@@ -100,6 +100,15 @@ export function useAlerts(coins: Coin[]) {
     toFire.forEach((params) => sendAlertNotification(params));
   }, [coins]);
 
+  const editAlert = useCallback((id: string, threshold: number, direction: AlertDirection) => {
+    setAlerts((prev) => {
+      const next = prev.map((a) => a.id === id ? { ...a, threshold, direction, triggered: false } : a);
+      saveAlerts(next);
+      return next;
+    });
+    lastTriggeredRef.current.delete(id);
+  }, []);
+
   const clearAlerts = useCallback(() => {
     setAlerts([]);
     localStorage.removeItem(STORAGE_KEY);
@@ -114,5 +123,5 @@ export function useAlerts(coins: Coin[]) {
     if (initial.length > 0) syncAlertsToNative(initial);
   }, []);
 
-  return { alerts, addAlert, removeAlert, resetAlert, clearAlerts };
+  return { alerts, addAlert, removeAlert, resetAlert, editAlert, clearAlerts };
 }
