@@ -1,11 +1,14 @@
-import type { FC } from 'react';
+import { useState, type FC } from 'react';
 import { getNotificationPermission, openNotificationSettings } from '../utils/notifications';
+import { checkForUpdates, downloadAndInstall, type UpdateResult } from '../utils/update';
 
 const INTERVALS = [
   { label: '30 sec', ms: 30_000 },
   { label: '1 min', ms: 60_000 },
   { label: '5 min', ms: 300_000 },
 ];
+
+type UpdateState = 'idle' | 'checking' | 'up-to-date' | 'available' | 'error';
 
 interface Props {
   refreshInterval: number;
@@ -25,6 +28,19 @@ const SettingsTab: FC<Props> = ({
   onClearAlerts,
 }) => {
   const notifPerm = getNotificationPermission();
+  const [updateState, setUpdateState] = useState<UpdateState>('idle');
+  const [updateInfo, setUpdateInfo] = useState<UpdateResult | null>(null);
+
+  const handleCheckUpdate = async () => {
+    setUpdateState('checking');
+    try {
+      const result = await checkForUpdates(__APP_BUILD_DATE__);
+      setUpdateInfo(result);
+      setUpdateState(result.available ? 'available' : 'up-to-date');
+    } catch {
+      setUpdateState('error');
+    }
+  };
 
   const handleClearFavorites = () => {
     if (favoritesCount === 0) return;
@@ -38,6 +54,72 @@ const SettingsTab: FC<Props> = ({
 
   return (
     <div className="space-y-5">
+
+      {/* Aggiornamento app */}
+      <section>
+        <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-1">Aggiornamento app</h2>
+        <div className="bg-dark-800 rounded-xl px-4 py-4 flex flex-col gap-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-white font-medium">CryptoWatch</p>
+              <p className="text-xs text-gray-500 mt-0.5">
+                Build: {new Date(__APP_BUILD_DATE__).toLocaleDateString('it-IT', {
+                  day: '2-digit', month: '2-digit', year: 'numeric',
+                })}
+              </p>
+            </div>
+            {updateState === 'up-to-date' && (
+              <span className="text-xs font-semibold text-accent-green bg-accent-green/10 px-2.5 py-1 rounded-full">
+                Aggiornata
+              </span>
+            )}
+            {updateState === 'available' && (
+              <span className="text-xs font-semibold text-accent-blue bg-accent-blue/10 px-2.5 py-1 rounded-full">
+                Disponibile
+              </span>
+            )}
+          </div>
+
+          {updateState === 'available' && updateInfo && (
+            <div className="bg-accent-blue/10 border border-accent-blue/20 rounded-lg px-3 py-2">
+              <p className="text-xs text-gray-300">
+                Nuovo aggiornamento del <span className="text-white font-medium">{updateInfo.releaseDate}</span>
+              </p>
+            </div>
+          )}
+
+          {updateState === 'error' && (
+            <p className="text-xs text-accent-red">Impossibile verificare. Controlla la connessione.</p>
+          )}
+
+          {updateState === 'available' && updateInfo?.downloadUrl ? (
+            <button
+              onClick={() => downloadAndInstall(updateInfo.downloadUrl!)}
+              className="w-full py-2.5 bg-accent-blue text-white text-sm font-semibold rounded-lg hover:opacity-90 transition-opacity"
+            >
+              Scarica e installa
+            </button>
+          ) : (
+            <button
+              onClick={handleCheckUpdate}
+              disabled={updateState === 'checking'}
+              className="w-full py-2.5 bg-dark-700 text-gray-300 text-sm font-medium rounded-lg hover:bg-dark-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              {updateState === 'checking' ? (
+                <>
+                  <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                  </svg>
+                  Verifica in corso…
+                </>
+              ) : (
+                'Controlla aggiornamenti'
+              )}
+            </button>
+          )}
+        </div>
+      </section>
 
       {/* Notifiche */}
       <section>
@@ -70,7 +152,7 @@ const SettingsTab: FC<Props> = ({
         </div>
       </section>
 
-      {/* Aggiornamento */}
+      {/* Aggiornamento prezzi */}
       <section>
         <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-1">Aggiornamento prezzi</h2>
         <div className="bg-dark-800 rounded-xl px-4 py-3">
@@ -129,10 +211,6 @@ const SettingsTab: FC<Props> = ({
           <div className="px-4 py-3 flex items-center justify-between">
             <span className="text-sm text-gray-400">Applicazione</span>
             <span className="text-sm text-white font-medium">CryptoWatch</span>
-          </div>
-          <div className="px-4 py-3 flex items-center justify-between">
-            <span className="text-sm text-gray-400">Versione</span>
-            <span className="text-sm text-white font-medium">1.0.0</span>
           </div>
           <div className="px-4 py-3 flex items-center justify-between">
             <span className="text-sm text-gray-400">Sviluppatore</span>
