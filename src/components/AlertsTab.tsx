@@ -166,11 +166,22 @@ const AlertRow: FC<AlertRowProps> = ({ alert, onRemove, onReset, onEdit, coin })
       {/* Editor inline con slider */}
       {editing && (
         <div className="px-3 pb-3 border-t border-dark-600">
-          {/* Soglia live + prezzo attuale */}
+          {/* Soglia live + % rispetto al prezzo attuale */}
           <div className="flex items-center justify-between pt-2.5 pb-2">
-            <span className={`text-sm font-bold tabular-nums ${draftDirection === 'above' ? 'text-accent-green' : 'text-accent-red'}`}>
-              {draftDirection === 'above' ? '▲' : '▼'} ${formatPrice(draftThreshold)}
-            </span>
+            <div className="flex items-center gap-2">
+              <span className={`text-sm font-bold tabular-nums ${draftDirection === 'above' ? 'text-accent-green' : 'text-accent-red'}`}>
+                {draftDirection === 'above' ? '▲' : '▼'} ${formatPrice(draftThreshold)}
+              </span>
+              {coin && (() => {
+                const pct = ((draftThreshold - coin.current_price) / coin.current_price) * 100;
+                const sign = pct >= 0 ? '+' : '';
+                return (
+                  <span className={`text-xs font-semibold tabular-nums px-1.5 py-0.5 rounded-full ${pct >= 0 ? 'text-accent-green bg-accent-green/10' : 'text-accent-red bg-accent-red/10'}`}>
+                    {sign}{pct.toFixed(2)}%
+                  </span>
+                );
+              })()}
+            </div>
             {coin && (
               <span className="text-xs text-gray-500">
                 Ora: <span className="text-gray-300 font-medium">${formatPrice(coin.current_price)}</span>
