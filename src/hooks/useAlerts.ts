@@ -103,7 +103,15 @@ export function useAlerts(coins: Coin[]) {
   const clearAlerts = useCallback(() => {
     setAlerts([]);
     localStorage.removeItem(STORAGE_KEY);
+    syncAlertsToNative([]);
     lastTriggeredRef.current.clear();
+  }, []);
+
+  // Sync su mount: garantisce che SharedPreferences sia sempre aggiornato
+  // (es. dopo reinstallazione, reboot, o cancellazione dati)
+  useEffect(() => {
+    const initial = loadAlerts();
+    if (initial.length > 0) syncAlertsToNative(initial);
   }, []);
 
   return { alerts, addAlert, removeAlert, resetAlert, clearAlerts };
