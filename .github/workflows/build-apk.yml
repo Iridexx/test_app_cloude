@@ -16,6 +16,10 @@ jobs:
       pages: write
       id-token: write
 
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -62,20 +66,21 @@ jobs:
             --latest \
             CryptoWatch-debug.apk
 
-      - name: Pubblica APK su GitHub Pages
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Prepara cartella per Pages
         run: |
-          git config user.email "actions@github.com"
-          git config user.name "GitHub Actions"
-          git fetch origin gh-pages 2>/dev/null || true
-          git checkout gh-pages 2>/dev/null || git checkout --orphan gh-pages
-          cp CryptoWatch-debug.apk .
-          git add CryptoWatch-debug.apk
-          git commit -m "deploy: APK build ${{ github.run_number }}" || true
-          git push origin gh-pages
+          mkdir -p pages-dist
+          cp CryptoWatch-debug.apk pages-dist/
 
-      - name: Upload APK come artefatto
+      - name: Upload artefatto Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: pages-dist
+
+      - name: Deploy su GitHub Pages
+        id: deploy
+        uses: actions/deploy-pages@v4
+
+      - name: Upload APK come artefatto CI
         uses: actions/upload-artifact@v6
         with:
           name: CryptoWatch-debug.apk
