@@ -381,6 +381,31 @@ const SettingsTab: FC<Props> = ({
         </div>
       </section>
 
+      {/* Social */}
+      <section>
+        <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-1">Sviluppatore</h2>
+        <a
+          href="https://x.com/eifel3btc"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-3 bg-dark-800 rounded-xl px-4 py-3 hover:bg-dark-700 active:bg-dark-600 transition-colors group"
+        >
+          {/* Logo X */}
+          <div className="w-9 h-9 bg-white rounded-lg flex items-center justify-center flex-shrink-0">
+            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="black">
+              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.748l7.73-8.835L1.254 2.25H8.08l4.253 5.622 5.91-5.622Zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+            </svg>
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm text-white font-semibold">Seguimi su X</p>
+            <p className="text-xs text-gray-500 mt-0.5">@eifel3btc</p>
+          </div>
+          <svg className="w-4 h-4 text-gray-600 group-hover:text-gray-400 transition-colors flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </a>
+      </section>
+
       <p className="text-center text-xs text-gray-600 pb-2">
         I dati di mercato sono forniti da CoinGecko API (gratuita).
       </p>
