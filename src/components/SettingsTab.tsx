@@ -4,6 +4,71 @@ import { openNotificationSettings } from '../utils/notifications';
 import { openBatterySettings } from '../utils/energySaving';
 import { checkForUpdates, downloadAndInstall, openDownloadsFolder, getDevBuildInfo, mergeToMain, APK_PAGES_URL, type UpdateResult, type DevBuildInfo } from '../utils/update';
 
+const DONATION_OPTIONS = [
+  {
+    icon: '⚡',
+    label: 'Lightning Network',
+    subtitle: 'Bitcoin istantaneo · zero commissioni',
+    address: 'eifel@getalby.com',
+  },
+  {
+    icon: '₿',
+    label: 'Bitcoin',
+    subtitle: 'On-chain · Taproot',
+    address: 'bc1pfzyjm5759qv0rjfsxld4jcejqv7elkuw6j9w2dxcsyrdf4vsw6yq6lexdg',
+  },
+  {
+    icon: '💎',
+    label: 'USDT / USDC',
+    subtitle: 'EVM · Ethereum, Polygon, BSC, Arbitrum…',
+    address: '0x80f8Fc375bCf1a7BC38394d6048e8364628Bd6C0',
+  },
+] as const;
+
+const DonationRow: FC<{ icon: string; label: string; subtitle: string; address: string; last?: boolean }> = ({
+  icon, label, subtitle, address, last,
+}) => {
+  const [copied, setCopied] = useState(false);
+
+  const truncated = address.length > 20
+    ? `${address.slice(0, 10)}…${address.slice(-6)}`
+    : address;
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(address);
+    } catch {
+      const el = document.createElement('textarea');
+      el.value = address;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+    }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div className={`px-4 py-3 flex items-center gap-3 ${last ? 'rounded-b-xl' : ''}`}>
+      <span className="text-xl w-7 text-center flex-shrink-0">{icon}</span>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm text-white font-medium">{label}</p>
+        <p className="text-xs text-gray-500 mt-0.5">{subtitle}</p>
+        <p className="text-xs text-gray-600 font-mono mt-0.5 truncate">{truncated}</p>
+      </div>
+      <button
+        onClick={handleCopy}
+        className={`flex-shrink-0 text-xs px-3 py-1.5 rounded-lg font-semibold transition-all ${
+          copied ? 'bg-accent-green/20 text-accent-green' : 'bg-dark-700 text-gray-400 hover:text-white'
+        }`}
+      >
+        {copied ? '✓ Copiato' : 'Copia'}
+      </button>
+    </div>
+  );
+};
+
 const INTERVALS = [
   { label: '30 sec', ms: 30_000 },
   { label: '1 min', ms: 60_000 },
@@ -418,6 +483,37 @@ const SettingsTab: FC<Props> = ({
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
           </svg>
         </a>
+      </section>
+
+      {/* Donazioni */}
+      <section>
+        <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-1">Supporta lo sviluppatore</h2>
+        <div className="bg-dark-800 rounded-xl divide-y divide-dark-700">
+          {/* Buy Me a Coffee */}
+          <a
+            href="https://buymeacoffee.com/eifel3btc"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-4 py-3 flex items-center gap-3 hover:bg-dark-700 transition-colors rounded-t-xl group"
+          >
+            <span className="text-xl w-7 text-center flex-shrink-0">☕</span>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm text-white font-medium">Buy Me a Coffee</p>
+              <p className="text-xs text-gray-500 mt-0.5">Carta di credito · PayPal</p>
+            </div>
+            <svg className="w-4 h-4 text-gray-600 group-hover:text-gray-400 transition-colors flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            </svg>
+          </a>
+          {/* Crypto */}
+          {DONATION_OPTIONS.map((opt, i) => (
+            <DonationRow
+              key={opt.address}
+              {...opt}
+              last={i === DONATION_OPTIONS.length - 1}
+            />
+          ))}
+        </div>
       </section>
 
       <p className="text-center text-xs text-gray-600 pb-2">
