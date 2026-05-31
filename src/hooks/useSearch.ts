@@ -4,7 +4,7 @@ import type { Coin } from '../types';
 const SEARCH_URL = 'https://api.coingecko.com/api/v3/search';
 const MARKETS_URL = 'https://api.coingecko.com/api/v3/coins/markets';
 
-export function useSearch(query: string) {
+export function useSearch(query: string, currency = 'usd') {
   const [results, setResults] = useState<Coin[]>([]);
   const [searching, setSearching] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
@@ -35,7 +35,7 @@ export function useSearch(query: string) {
 
         const ids = coins.slice(0, 25).map((c) => c.id).join(',');
         const marketsRes = await fetch(
-          `${MARKETS_URL}?vs_currency=usd&ids=${ids}&order=market_cap_desc&sparkline=false&price_change_percentage=24h`,
+          `${MARKETS_URL}?vs_currency=${currency}&ids=${ids}&order=market_cap_desc&sparkline=false&price_change_percentage=24h`,
           { signal }
         );
         if (!marketsRes.ok) throw new Error();
@@ -51,7 +51,7 @@ export function useSearch(query: string) {
       if (timerRef.current) clearTimeout(timerRef.current);
       abortRef.current?.abort();
     };
-  }, [query]);
+  }, [query, currency]);
 
   return { results, searching };
 }

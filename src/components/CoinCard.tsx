@@ -1,28 +1,43 @@
 import type { FC } from 'react';
 import type { Coin } from '../types';
+import type { Currency } from '../hooks/useCurrency';
+
+const SYMBOL: Record<Currency, string> = { usd: '$', eur: '€', btc: '₿' };
+
+function formatPrice(price: number, currency: Currency): string {
+  if (currency === 'btc') {
+    if (price >= 0.001) return price.toLocaleString('it-IT', { minimumFractionDigits: 4, maximumFractionDigits: 6 });
+    return price.toFixed(8);
+  }
+  if (price >= 1000) return price.toLocaleString('it-IT', { maximumFractionDigits: 0 });
+  if (price >= 1) return price.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return price.toLocaleString('it-IT', { minimumFractionDigits: 4, maximumFractionDigits: 6 });
+}
+
+function formatMarketCap(val: number, currency: Currency): string {
+  const sym = SYMBOL[currency];
+  if (currency === 'btc') {
+    if (val >= 1e6) return `${sym}${(val / 1e6).toFixed(2)}M`;
+    if (val >= 1000) return `${sym}${(val / 1000).toFixed(1)}K`;
+    return `${sym}${val.toFixed(2)}`;
+  }
+  if (val >= 1e12) return `${sym}${(val / 1e12).toFixed(2)}T`;
+  if (val >= 1e9) return `${sym}${(val / 1e9).toFixed(2)}B`;
+  if (val >= 1e6) return `${sym}${(val / 1e6).toFixed(2)}M`;
+  return `${sym}${val.toLocaleString('it-IT')}`;
+}
 
 interface Props {
   coin: Coin;
   isFavorite: boolean;
   onToggleFavorite: (id: string) => void;
   onAddAlert: (coin: Coin) => void;
+  currency: Currency;
 }
 
-function formatPrice(price: number): string {
-  if (price >= 1000) return price.toLocaleString('it-IT', { maximumFractionDigits: 0 });
-  if (price >= 1) return price.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  return price.toLocaleString('it-IT', { minimumFractionDigits: 4, maximumFractionDigits: 6 });
-}
-
-function formatMarketCap(val: number): string {
-  if (val >= 1e12) return `$${(val / 1e12).toFixed(2)}T`;
-  if (val >= 1e9) return `$${(val / 1e9).toFixed(2)}B`;
-  if (val >= 1e6) return `$${(val / 1e6).toFixed(2)}M`;
-  return `$${val.toLocaleString('it-IT')}`;
-}
-
-const CoinCard: FC<Props> = ({ coin, isFavorite, onToggleFavorite, onAddAlert }) => {
+const CoinCard: FC<Props> = ({ coin, isFavorite, onToggleFavorite, onAddAlert, currency }) => {
   const isPositive = coin.price_change_percentage_24h >= 0;
+  const sym = SYMBOL[currency];
 
   return (
     <div className="flex items-center gap-3 bg-dark-800 rounded-xl p-3 hover:bg-dark-700 transition-colors">
@@ -37,12 +52,12 @@ const CoinCard: FC<Props> = ({ coin, isFavorite, onToggleFavorite, onAddAlert })
           <span className="text-xs text-gray-500 uppercase flex-shrink-0">{coin.symbol}</span>
         </div>
         <div className="text-xs text-gray-500 mt-0.5">
-          Cap: {formatMarketCap(coin.market_cap)}
+          Cap: {formatMarketCap(coin.market_cap, currency)}
         </div>
       </div>
 
       <div className="text-right flex-shrink-0">
-        <div className="font-bold text-sm text-white">${formatPrice(coin.current_price)}</div>
+        <div className="font-bold text-sm text-white">{sym}{formatPrice(coin.current_price, currency)}</div>
         <div className={`text-xs font-medium mt-0.5 ${isPositive ? 'text-accent-green' : 'text-accent-red'}`}>
           {isPositive ? '▲' : '▼'} {Math.abs(coin.price_change_percentage_24h).toFixed(2)}%
         </div>

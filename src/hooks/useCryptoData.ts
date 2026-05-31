@@ -3,8 +3,8 @@ import type { Coin } from '../types';
 
 const CACHE_KEY = 'cryptosentinel_coins_cache';
 
-function buildUrl(perPage: 50 | 100, page: number): string {
-  return `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=${perPage}&page=${page}&sparkline=false&price_change_percentage=24h`;
+function buildUrl(perPage: 50 | 100, page: number, currency: string): string {
+  return `https://api.coingecko.com/api/v3/coins/markets?vs_currency=${currency}&order=market_cap_desc&per_page=${perPage}&page=${page}&sparkline=false&price_change_percentage=24h`;
 }
 
 function loadCachedCoins(): Coin[] {
@@ -17,7 +17,7 @@ function loadCachedCoins(): Coin[] {
   }
 }
 
-export function useCryptoData(intervalMs = 30_000, perPage: 50 | 100 = 50, page = 1) {
+export function useCryptoData(intervalMs = 30_000, perPage: 50 | 100 = 50, page = 1, currency = 'usd') {
   const [coins, setCoins] = useState<Coin[]>(() => page === 1 ? loadCachedCoins() : []);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -28,7 +28,7 @@ export function useCryptoData(intervalMs = 30_000, perPage: 50 | 100 = 50, page 
     abortRef.current?.abort();
     abortRef.current = new AbortController();
     try {
-      const res = await fetch(buildUrl(perPage, page), { signal: abortRef.current.signal });
+      const res = await fetch(buildUrl(perPage, page, currency), { signal: abortRef.current.signal });
       if (!res.ok) throw new Error(`Errore API: ${res.status}`);
       const data: Coin[] = await res.json();
       setCoins(data);
@@ -43,7 +43,7 @@ export function useCryptoData(intervalMs = 30_000, perPage: 50 | 100 = 50, page 
     } finally {
       setLoading(false);
     }
-  }, [perPage, page]);
+  }, [perPage, page, currency]);
 
   useEffect(() => {
     setLoading(true);
