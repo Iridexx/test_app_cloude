@@ -24,7 +24,7 @@ const DONATION_OPTIONS = [
     label: 'USDT / USDC',
     subtitle: 'EVM · Ethereum, Polygon, BSC, Arbitrum…',
     address: '0x80f8Fc375bCf1a7BC38394d6048e8364628Bd6C0',
-    appUri: null,
+    appUri: 'ethereum:0x80f8Fc375bCf1a7BC38394d6048e8364628Bd6C0',
   },
 ] as const;
 
@@ -64,14 +64,7 @@ const DonationRow: FC<{ icon: string; label: string; subtitle: string; address: 
     >
       <span className="text-xl w-7 text-center flex-shrink-0">{icon}</span>
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-1.5">
-          <p className="text-sm text-white font-medium">{label}</p>
-          {appUri && (
-            <svg className="w-3 h-3 text-gray-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-            </svg>
-          )}
-        </div>
+        <p className="text-sm text-white font-medium">{label}</p>
         <p className="text-xs text-gray-500 mt-0.5">{subtitle}</p>
         <p className="text-xs text-gray-600 font-mono mt-0.5 truncate">{truncated}</p>
       </div>
