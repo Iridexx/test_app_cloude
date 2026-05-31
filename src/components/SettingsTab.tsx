@@ -378,6 +378,20 @@ const SettingsTab: FC<Props> = ({
             <span className="text-sm text-gray-400">Archiviazione</span>
             <span className="text-sm text-white font-medium">Solo locale</span>
           </div>
+          <a
+            href="https://www.gnu.org/licenses/gpl-3.0.html"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-4 py-3 flex items-center justify-between hover:bg-dark-700 transition-colors rounded-b-xl"
+          >
+            <span className="text-sm text-gray-400">Licenza</span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-sm text-white font-medium">GPL v3</span>
+              <svg className="w-3.5 h-3.5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              </svg>
+            </div>
+          </a>
         </div>
       </section>
 
