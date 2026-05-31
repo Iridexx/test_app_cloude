@@ -33,10 +33,14 @@ interface Props {
   onToggleFavorite: (id: string) => void;
   onAddAlert: (coin: Coin) => void;
   currency: Currency;
+  showVolume?: boolean;
+  show7dChange?: boolean;
 }
 
-const CoinCard: FC<Props> = ({ coin, isFavorite, onToggleFavorite, onAddAlert, currency }) => {
-  const isPositive = coin.price_change_percentage_24h >= 0;
+const CoinCard: FC<Props> = ({ coin, isFavorite, onToggleFavorite, onAddAlert, currency, showVolume, show7dChange }) => {
+  const change7d = coin.price_change_percentage_7d_in_currency;
+  const displayChange = (show7dChange && change7d != null) ? change7d : coin.price_change_percentage_24h;
+  const isPositive = displayChange >= 0;
   const sym = SYMBOL[currency];
 
   return (
@@ -52,14 +56,17 @@ const CoinCard: FC<Props> = ({ coin, isFavorite, onToggleFavorite, onAddAlert, c
           <span className="text-xs text-gray-400 uppercase flex-shrink-0">{coin.symbol}</span>
         </div>
         <div className="text-xs text-gray-400 mt-0.5">
-          Cap: {formatMarketCap(coin.market_cap, currency)}
+          {showVolume
+            ? `Vol: ${formatMarketCap(coin.total_volume, currency)}`
+            : `Cap: ${formatMarketCap(coin.market_cap, currency)}`}
         </div>
       </div>
 
       <div className="text-right flex-shrink-0">
         <div className="font-bold text-sm text-white">{sym}{formatPrice(coin.current_price, currency)}</div>
         <div className={`text-xs font-medium mt-0.5 ${isPositive ? 'text-accent-green' : 'text-accent-red'}`}>
-          {isPositive ? '▲' : '▼'} {Math.abs(coin.price_change_percentage_24h).toFixed(2)}%
+          {isPositive ? '▲' : '▼'} {Math.abs(displayChange).toFixed(2)}%
+          {show7dChange && change7d != null && <span className="text-gray-600 ml-0.5">7g</span>}
         </div>
       </div>
 

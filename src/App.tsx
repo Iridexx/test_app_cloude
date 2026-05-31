@@ -19,7 +19,7 @@ import SettingsTab from './components/SettingsTab';
 
 const INTERVAL_KEY = 'cryptosentinel_refresh_interval';
 
-type SortBy = 'rank' | 'change' | 'volume' | 'price';
+type SortBy = 'rank' | 'change' | '7d' | 'volume' | 'price';
 
 export default function App() {
   const [tab, setTab] = useState<Tab>('dashboard');
@@ -28,7 +28,7 @@ export default function App() {
   const [notifPerm, setNotifPerm] = useState<NotificationPermission>('default');
   const [batteryDismissed, setBatteryDismissed] = useState(isBatteryBannerDismissed);
   const [dlState, setDlState] = useState<'idle' | 'downloading' | 'done'>('idle');
-  const [perPage, setPerPage] = useState<50 | 100>(50);
+  const [perPage, setPerPage] = useState<15 | 50 | 100>(50);
   const [page, setPage] = useState(1);
   const [availableUpdate, setAvailableUpdate] = useState<UpdateResult | null>(null);
   const [updateDismissed, setUpdateDismissed] = useState(false);
@@ -87,7 +87,7 @@ export default function App() {
     localStorage.setItem(INTERVAL_KEY, String(ms));
   }, []);
 
-  const handlePerPageChange = useCallback((n: 50 | 100) => {
+  const handlePerPageChange = useCallback((n: 15 | 50 | 100) => {
     setPerPage(n);
     setPage(1);
   }, []);
@@ -111,6 +111,12 @@ export default function App() {
         const ar = a.market_cap_rank ?? 9999;
         const br = b.market_cap_rank ?? 9999;
         return sortDesc ? ar - br : br - ar;
+      });
+    } else if (sortBy === '7d') {
+      arr.sort((a, b) => {
+        const av = a.price_change_percentage_7d_in_currency ?? 0;
+        const bv = b.price_change_percentage_7d_in_currency ?? 0;
+        return sortDesc ? bv - av : av - bv;
       });
     } else {
       const key = sortBy === 'change' ? 'price_change_percentage_24h'
@@ -224,7 +230,7 @@ export default function App() {
                 <>
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex gap-1">
-                      {([50, 100] as const).map((n) => (
+                      {([15, 50, 100] as const).map((n) => (
                         <button
                           key={n}
                           onClick={() => handlePerPageChange(n)}
@@ -258,6 +264,7 @@ export default function App() {
                     {([
                       { key: 'rank' as SortBy, label: 'Rank' },
                       { key: 'change' as SortBy, label: '24h %' },
+                      { key: '7d' as SortBy, label: '7g %' },
                       { key: 'volume' as SortBy, label: 'Volume' },
                       { key: 'price' as SortBy, label: 'Prezzo' },
                     ]).map(({ key, label }) => (
@@ -301,6 +308,8 @@ export default function App() {
                       onToggleFavorite={toggleFavorite}
                       onAddAlert={handleAddAlert}
                       currency={currency}
+                      showVolume={sortBy === 'volume'}
+                      show7dChange={sortBy === '7d'}
                     />
                   ))}
                 </div>
