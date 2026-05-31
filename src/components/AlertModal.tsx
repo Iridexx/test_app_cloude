@@ -130,7 +130,7 @@ const AlertModal: FC<Props> = ({ coin, onConfirm, onClose }) => {
             ▲ Sopra
           </button>
           <button
-            onClick={() => setDirection('below')}
+            onClick={() => setDirection('below')}  
             className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-colors ${
               direction === 'below' ? 'bg-accent-red text-white' : 'bg-dark-700 text-gray-400 hover:bg-dark-600'
             }`}
@@ -149,7 +149,15 @@ const AlertModal: FC<Props> = ({ coin, onConfirm, onClose }) => {
                 type="text"
                 inputMode="decimal"
                 value={priceValue}
-                onChange={(e) => { setPriceValue(e.target.value); setError(''); }}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setPriceValue(val);
+                  setError('');
+                  const num = parsePrice(val);
+                  if (!isNaN(num) && num > 0) {
+                    setDirection(num >= coin.current_price ? 'above' : 'below');
+                  }
+                }}
                 onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
                 className="flex-1 bg-transparent text-white py-2.5 outline-none text-sm"
                 placeholder="0.00"
